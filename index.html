@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T 數獨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══ THREE.JS CANVAS BACKGROUND ═══ -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">T</div>
+    <div class="splash-title">數獨</div>
+    <div class="splash-sub">SUDOKU · CLASSIC EDITION</div>
+    <div class="splash-loader"><div class="splash-bar"></div></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app" class="hidden">
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <h1>T <span>數獨</span></h1>
+      <p class="tagline">Classic Sudoku · 精英版</p>
+    </div>
+    <div class="header-right">
+      <span class="theme-label" id="themeLabel">🌙</span>
+      <button class="theme-toggle" id="themeToggle" aria-label="切換主題">
+        <div class="theme-knob" id="themeKnob"></div>
+      </button>
+    </div>
+  </header>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <button class="diff-btn active" data-diff="easy">簡單</button>
+    <button class="diff-btn" data-diff="medium">中等</button>
+    <button class="diff-btn" data-diff="hard">困難</button>
+    <button class="diff-btn" id="newGameBtn">✦ 新遊戲</button>
+  </div>
+
+  <!-- Game Layout -->
+  <div class="game-wrap">
+
+    <!-- Board -->
+    <div class="board-section">
+      <div class="board-container">
+        <div class="board" id="board"></div>
+        <div class="board-glow"></div>
+      </div>
+      <div class="status-bar">
+        <div class="status-dot ok" id="statusDot"></div>
+        <span id="statusText">棋盤正確</span>
+        <div class="status-spacer"></div>
+        <span class="mistake-count" id="mistakeCount"></span>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Timer -->
+      <div class="panel panel-timer">
+        <div class="panel-title">⏱ 計時器</div>
+        <div class="timer-display">
+          <div class="timer-ghost">88:88</div>
+          <div class="timer-inner" id="timer">00:00</div>
+        </div>
+        <div class="timer-diff" id="timerDiff"></div>
+      </div>
+
+      <!-- Input -->
+      <div class="panel">
+        <div class="panel-title">✦ 輸入</div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="normalMode">填數</button>
+          <button class="mode-btn" id="notesMode">✏ 候選</button>
+        </div>
+        <div class="numpad" id="numpad">
+          <button class="num-btn" data-n="1">1</button>
+          <button class="num-btn" data-n="2">2</button>
+          <button class="num-btn" data-n="3">3</button>
+          <button class="num-btn" data-n="4">4</button>
+          <button class="num-btn" data-n="5">5</button>
+          <button class="num-btn" data-n="6">6</button>
+          <button class="num-btn" data-n="7">7</button>
+          <button class="num-btn" data-n="8">8</button>
+          <button class="num-btn" data-n="9">9</button>
+          <button class="num-btn erase" data-n="0" style="grid-column:span 3">⌫ 清除</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="panel">
+        <div class="panel-title">⚙ 功能</div>
+        <button class="action-btn" id="hintBtn"><span class="icon">💡</span>提示</button>
+        <button class="action-btn" id="solveAnimBtn"><span class="icon">🎬</span>解題動畫</button>
+        <button class="action-btn danger" id="abandonBtn"><span class="icon">🏳</span>放棄此局</button>
+        <button class="action-btn" id="saveBtn"><span class="icon">💾</span>儲存進度</button>
+      </div>
+
+      <!-- Best Times -->
+      <div class="panel">
+        <div class="panel-title">🏆 最佳時間</div>
+        <div class="leaderboard" id="leaderboard"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HINT POPUP ═══ -->
+<div class="hint-popup" id="hintPopup">
+  <strong>💡 提示</strong>
+  <span id="hintText">選擇一個空格先</span>
+</div>
+
+<!-- ═══ ABANDON MODAL ═══ -->
+<div class="modal-overlay" id="abandonModal">
+  <div class="modal-box">
+    <div class="modal-icon">🏳</div>
+    <h3>放棄此局</h3>
+    <p>你確定要放棄這局遊戲嗎？<br>可以選擇直接睇答案，或者返回繼續挑戰。</p>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" id="abandonCancel">繼續挑戰</button>
+      <button class="modal-btn-see" id="abandonSeeAnswer">睇答案</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WIN OVERLAY ═══ -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-box">
+    <div class="win-emoji-big">🏆</div>
+    <h2>完成！</h2>
+    <div class="win-time" id="winTime">00:00</div>
+    <p id="winMsg">出色！你完成了 T 數獨！</p>
+    <div class="win-record" id="winRecord"></div>
+    <button class="action-btn win-again" id="playAgainBtn">🎮 再玩一次</button>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
